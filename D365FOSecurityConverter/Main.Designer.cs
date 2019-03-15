@@ -98,6 +98,7 @@
             // 
             // btn_Export
             // 
+            this.btn_Export.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btn_Export.Enabled = false;
             this.btn_Export.Location = new System.Drawing.Point(578, 362);
             this.btn_Export.Name = "btn_Export";
@@ -115,6 +116,10 @@
             // 
             this.dgvSecurityLayers.AllowUserToAddRows = false;
             this.dgvSecurityLayers.AllowUserToDeleteRows = false;
+            this.dgvSecurityLayers.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvSecurityLayers.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvSecurityLayers.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvSecurityLayers.Location = new System.Drawing.Point(12, 159);
             this.dgvSecurityLayers.MultiSelect = false;
@@ -125,6 +130,7 @@
             // 
             // btn_Process
             // 
+            this.btn_Process.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btn_Process.Enabled = false;
             this.btn_Process.Location = new System.Drawing.Point(578, 130);
             this.btn_Process.Name = "btn_Process";
