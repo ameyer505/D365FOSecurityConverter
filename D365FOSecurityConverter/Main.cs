@@ -49,72 +49,57 @@ namespace D365FOSecurityConverter
 
             XmlDocument xDoc = new XmlDocument();
             xDoc.Load(inputFilePath);
-            XmlNodeList roles = xDoc.GetElementsByTagName("AxSecurityRole");
+
+            string xml = xDoc.OuterXml;
+            foreach(var securityLayer in securityLayerList)
+            {
+                xml = ReplaceSecurityLayerParameters(xml, securityLayer);
+            }
+
+            XmlDocument renamedXDoc = new XmlDocument();
+            TextReader tr = new StringReader(xml);
+            renamedXDoc.Load(tr);
+
+            XmlNodeList roles = renamedXDoc.GetElementsByTagName("AxSecurityRole");
             foreach (XmlNode role in roles)
             {
                 string roleName = role["Name"]?.InnerText;
-                if (roleName != null)
-                {
-                    SecurityLayer roleSecurityLayer = securityLayerList.FirstOrDefault(sl => sl.OldName == roleName && sl.Type == "Role");
-                    if(roleSecurityLayer != null)
-                    {
-                        string fileName = roleFolderPath + @"\" + roleSecurityLayer.Name + @".xml";
-                        string xml = ReplaceSecurityLayerParameters(role.OuterXml, roleSecurityLayer);
-                        File.WriteAllText(fileName, xml);
-                    }                
-                }
+                string fileName = roleFolderPath + @"\" + roleName + @".xml";
+                File.WriteAllText(fileName, role.OuterXml);
             }
-            XmlNodeList duties = xDoc.GetElementsByTagName("AxSecurityDuty");
+
+            XmlNodeList duties = renamedXDoc.GetElementsByTagName("AxSecurityDuty");
             foreach (XmlNode duty in duties)
             {
                 string dutyName = duty["Name"]?.InnerText;
-                
-                if (dutyName != null)
-                {
-                    SecurityLayer dutySecurityLayer = securityLayerList.FirstOrDefault(sl => sl.OldName == dutyName && sl.Type == "Duty");
-                    if(dutySecurityLayer != null)
-                    {
-                        string fileName = dutyFolderPath + @"\" + dutySecurityLayer.Name + @".xml";
-                        string xml = ReplaceSecurityLayerParameters(duty.OuterXml, dutySecurityLayer);
-                        File.WriteAllText(fileName, xml);
-                    }
-                }
-
+                string fileName = dutyFolderPath + @"\" + dutyName + @".xml";
+                File.WriteAllText(fileName, duty.OuterXml);
             }
-            XmlNodeList privileges = xDoc.GetElementsByTagName("AxSecurityPrivilege");
+
+            XmlNodeList privileges = renamedXDoc.GetElementsByTagName("AxSecurityPrivilege");
             foreach (XmlNode privilege in privileges)
             {
                 string privilegeName = privilege["Name"]?.InnerText;
-
-                if (privilegeName != null)
-                {
-                    SecurityLayer privSecurityLayer = securityLayerList.FirstOrDefault(sl => sl.OldName == privilegeName && sl.Type == "Privilege");
-                    if(privSecurityLayer != null)
-                    {
-                        string fileName = privFolderPath + @"\" + privSecurityLayer.Name + @".xml";
-                        string xml = ReplaceSecurityLayerParameters(privilege.OuterXml, privSecurityLayer);
-                        File.WriteAllText(fileName, xml);
-                    }
-                }
+                string fileName = privFolderPath + @"\" + privilegeName + @".xml";
+                File.WriteAllText(fileName, privilege.OuterXml);
             }
         }
 
-        private string ReplaceSecurityLayerParameters(string inputXml, SecurityLayer securityLayer)
+        private string ReplaceSecurityLayerParameters(string xml, SecurityLayer securityLayer)
         {
-            string outputXml = inputXml;
             if(securityLayer.OldName != securityLayer.Name)
             {
-                outputXml = outputXml.Replace("<Name>"+securityLayer.OldName+"</Name>", "<Name>" + securityLayer.Name + "</Name>");
+                xml = xml.Replace("<Name>"+securityLayer.OldName+"</Name>", "<Name>" + securityLayer.Name + "</Name>");
             }
             if(securityLayer.OldLabel != securityLayer.Label)
             {
-                outputXml = outputXml.Replace("<Label>" + securityLayer.OldLabel + "</Label>", "<Label>" + securityLayer.Label + "</Label>");
+                xml = xml.Replace("<Label>" + securityLayer.OldLabel + "</Label>", "<Label>" + securityLayer.Label + "</Label>");
             }
             if(securityLayer.OldDescription != securityLayer.Description)
             {
-                outputXml = outputXml.Replace("<Description>" + securityLayer.OldDescription + "</Description>", "<Description>" + securityLayer.Description + "</Description>");
+                xml = xml.Replace("<Description>" + securityLayer.OldDescription + "</Description>", "<Description>" + securityLayer.Description + "</Description>");
             }
-            return outputXml;
+            return xml;
         }
 
         private List<SecurityLayer> ParseInputXML(string inputFilePath)
