@@ -1,4 +1,5 @@
 ﻿using D365FOSecurityConverter.Models;
+using Equin.ApplicationFramework;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -208,7 +209,8 @@ namespace D365FOSecurityConverter
             {
                 try
                 {
-                    dgvSecurityLayers.DataSource = ParseInputXML(inputFilePath);
+                    BindingListView<SecurityLayer> blv = new BindingListView<SecurityLayer>(ParseInputXML(inputFilePath));
+                    dgvSecurityLayers.DataSource = blv;
                     dgvSecurityLayers.Columns["OldName"].Visible = false;
                     dgvSecurityLayers.Columns["OldLabel"].Visible = false;
                     dgvSecurityLayers.Columns["OldDescription"].Visible = false;
@@ -216,6 +218,11 @@ namespace D365FOSecurityConverter
                     dgvSecurityLayers.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
                     if(tb_outputFolder.Text != "")
                         btn_Export.Enabled = true;
+
+                    dgvSecurityLayers.Columns["Name"].SortMode = DataGridViewColumnSortMode.Automatic;
+                    dgvSecurityLayers.Columns["Label"].SortMode = DataGridViewColumnSortMode.Automatic;
+                    dgvSecurityLayers.Columns["Type"].SortMode = DataGridViewColumnSortMode.Automatic;
+
                 }
                 catch (Exception ex)
                 {
