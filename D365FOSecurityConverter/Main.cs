@@ -37,7 +37,8 @@ namespace D365FOSecurityConverter
 
         private void ExportSecurityXMLFiles(string inputFilePath, string outputFolderPath)
         {
-            List<SecurityLayer> securityLayerList = (List<SecurityLayer>)dgvSecurityLayers.DataSource;
+            Equin.ApplicationFramework.BindingListView<SecurityLayer> ds = dgvSecurityLayers.DataSource as Equin.ApplicationFramework.BindingListView<SecurityLayer>;
+            List<SecurityLayer> securityLayerList = ds.NewItemsList as List<SecurityLayer>;
             string rootFolderPath = outputFolderPath + @"\D365FOCustomizedSecurity";
             string roleFolderPath = rootFolderPath + @"\AxSecurityRole";
             string dutyFolderPath = rootFolderPath + @"\AxSecurityDuty";
