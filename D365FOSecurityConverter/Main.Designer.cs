@@ -40,7 +40,7 @@
             this.dgvSecurityLayers = new System.Windows.Forms.DataGridView();
             this.btn_Process = new System.Windows.Forms.Button();
             this.btn_checkAll = new System.Windows.Forms.Button();
-            this.btnExportToUI = new System.Windows.Forms.Button();
+            this.btn_ExportToUI = new System.Windows.Forms.Button();
             this.btnUncheckAll = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSecurityLayers)).BeginInit();
             this.SuspendLayout();
@@ -130,6 +130,8 @@
             this.dgvSecurityLayers.RowHeadersVisible = false;
             this.dgvSecurityLayers.Size = new System.Drawing.Size(641, 197);
             this.dgvSecurityLayers.TabIndex = 7;
+            this.dgvSecurityLayers.CellMouseUp += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvSecurityLayers_OnCellMouseUp);
+            this.dgvSecurityLayers.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvSecurityLayers_OnCellValueChanged);
             // 
             // btn_Process
             // 
@@ -153,15 +155,15 @@
             this.btn_checkAll.UseVisualStyleBackColor = true;
             this.btn_checkAll.Click += new System.EventHandler(this.btnCheckAll_Click);
             // 
-            // btnExportToUI
+            // btn_ExportToUI
             // 
-            this.btnExportToUI.Location = new System.Drawing.Point(12, 362);
-            this.btnExportToUI.Name = "btnExportToUI";
-            this.btnExportToUI.Size = new System.Drawing.Size(156, 23);
-            this.btnExportToUI.TabIndex = 10;
-            this.btnExportToUI.Text = "Export To UI";
-            this.btnExportToUI.UseVisualStyleBackColor = true;
-            this.btnExportToUI.Click += new System.EventHandler(this.btnExportToUI_Click);
+            this.btn_ExportToUI.Location = new System.Drawing.Point(12, 362);
+            this.btn_ExportToUI.Name = "btn_ExportToUI";
+            this.btn_ExportToUI.Size = new System.Drawing.Size(156, 23);
+            this.btn_ExportToUI.TabIndex = 10;
+            this.btn_ExportToUI.Text = "Export To UI";
+            this.btn_ExportToUI.UseVisualStyleBackColor = true;
+            this.btn_ExportToUI.Click += new System.EventHandler(this.btnExportToUI_Click);
             // 
             // btnUncheckAll
             // 
@@ -179,7 +181,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(665, 397);
             this.Controls.Add(this.btnUncheckAll);
-            this.Controls.Add(this.btnExportToUI);
+            this.Controls.Add(this.btn_ExportToUI);
             this.Controls.Add(this.btn_checkAll);
             this.Controls.Add(this.btn_Process);
             this.Controls.Add(this.dgvSecurityLayers);
@@ -212,7 +214,7 @@
         private System.Windows.Forms.DataGridView dgvSecurityLayers;
         private System.Windows.Forms.Button btn_Process;
         private System.Windows.Forms.Button btn_checkAll;
-        private System.Windows.Forms.Button btnExportToUI;
+        private System.Windows.Forms.Button btn_ExportToUI;
         private System.Windows.Forms.Button btnUncheckAll;
     }
 }

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace D365FOSecurityConverter
 {
@@ -35,6 +36,75 @@ namespace D365FOSecurityConverter
             }
         }
 
+        private void ExportToUI(string inputFilePath, string outputFilePath)
+        {
+            List<SecurityLayer> securityLayerList = (List<SecurityLayer>)dgvSecurityLayers.DataSource;
+
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(inputFilePath);
+
+            string xml = xDoc.OuterXml;
+            foreach (var securityLayer in securityLayerList.Where(sl => sl.Selected == true))
+            {
+                xml = ReplaceSecurityLayerParameters(xml, securityLayer);
+            }
+
+            XmlDocument renamedXDoc = new XmlDocument();
+            TextReader tr = new StringReader(xml);
+            renamedXDoc.Load(tr);
+
+            IEnumerable<string> selectedRoles = securityLayerList.Where(sl => sl.Selected == true && sl.Type == "Role").Select(x => x.Name);
+            IEnumerable<string> selectedDuties = securityLayerList.Where(sl => sl.Selected == true && sl.Type == "Duty").Select(x => x.Name);
+            IEnumerable<string> selectedPrivs = securityLayerList.Where(sl => sl.Selected == true && sl.Type == "Privilege").Select(x => x.Name);
+
+            XmlDocument resultXml = new XmlDocument();
+            resultXml.DocumentElement.SetAttribute("xmlns", "http://schemas.datacontract.org/2004/07/Microsoft.Dynamics.AX.Security.Management");
+            resultXml.DocumentElement.SetAttribute("xmlns:i", "http://www.w3.org/2001/XMLSchema-instance");
+
+            XmlNodeList customizationList = renamedXDoc.GetElementsByTagName("BaseRepositoryCustomizations");
+            foreach(XmlNode customization in customizationList)
+            {
+                if (customization.Attributes["type"].Value.Contains("Role"))
+                {
+                    //customization.ChildNodes.
+                }
+            }
+            XmlNodeList CustomizedObjectList = renamedXDoc.GetElementsByTagName("_x003C_CustomizedObjectList_x003E_k__BackingField");
+           // XmlNodeList a = CustomizedObjectList.
+            XmlNodeList DisabledObjectList = renamedXDoc.GetElementsByTagName("_x003C_DisabledObjectSet_x003E_k__BackingField");
+            XmlNodeList NewObjectList = renamedXDoc.GetElementsByTagName("_x003C_NewObjectList_x003E_k__BackingField");
+
+            XmlNodeList roles = renamedXDoc.GetElementsByTagName("AxSecurityRole");
+            foreach (XmlNode role in roles)
+            {
+                string roleName = role["Name"]?.InnerText;
+                if (selectedRoles.Contains(roleName))
+                {
+                }
+            }
+
+            XmlNodeList duties = renamedXDoc.GetElementsByTagName("AxSecurityDuty");
+            foreach(XmlNode duty in duties)
+            {
+                string dutyName = duty["Name"]?.InnerText;
+                if (selectedDuties.Contains(dutyName))
+                {
+
+                }
+            }
+
+            XmlNodeList privileges = renamedXDoc.GetElementsByTagName("AxSecurityPrivilege");
+            foreach(XmlNode priv in privileges)
+            {
+                string privName = priv["Name"]?.InnerText;
+                if (selectedPrivs.Contains(privName))
+                {
+
+                }
+            }
+            
+        }
+
         private void ExportSecurityToCode(string inputFilePath, string outputFolderPath)
         {
             List<SecurityLayer> securityLayerList = (List<SecurityLayer>)dgvSecurityLayers.DataSource;
@@ -52,7 +122,7 @@ namespace D365FOSecurityConverter
             xDoc.Load(inputFilePath);
 
             string xml = xDoc.OuterXml;
-            foreach(var securityLayer in securityLayerList.Where(sl => sl.Selected == true))
+            foreach(var securityLayer in securityLayerList)
             {
                 xml = ReplaceSecurityLayerParameters(xml, securityLayer);
             }
@@ -61,28 +131,41 @@ namespace D365FOSecurityConverter
             TextReader tr = new StringReader(xml);
             renamedXDoc.Load(tr);
 
+            IEnumerable<string> selectedRoles = securityLayerList.Where(sl => sl.Selected == true && sl.Type == "Role").Select(x => x.Name);
+            IEnumerable<string> selectedDuties = securityLayerList.Where(sl => sl.Selected == true && sl.Type == "Duty").Select(x => x.Name);
+            IEnumerable<string> selectedPrivs = securityLayerList.Where(sl => sl.Selected == true && sl.Type == "Privilege").Select(x => x.Name);
+
             XmlNodeList roles = renamedXDoc.GetElementsByTagName("AxSecurityRole");
             foreach (XmlNode role in roles)
             {
                 string roleName = role["Name"]?.InnerText;
-                string fileName = roleFolderPath + @"\" + roleName + @".xml";
-                File.WriteAllText(fileName, role.OuterXml);
+                if (selectedRoles.Contains(roleName))
+                {
+                    string fileName = roleFolderPath + @"\" + roleName + @".xml";
+                    File.WriteAllText(fileName, role.OuterXml);
+                }
             }
 
             XmlNodeList duties = renamedXDoc.GetElementsByTagName("AxSecurityDuty");
             foreach (XmlNode duty in duties)
             {
                 string dutyName = duty["Name"]?.InnerText;
-                string fileName = dutyFolderPath + @"\" + dutyName + @".xml";
-                File.WriteAllText(fileName, duty.OuterXml);
+                if (selectedDuties.Contains(dutyName))
+                {
+                    string fileName = dutyFolderPath + @"\" + dutyName + @".xml";
+                    File.WriteAllText(fileName, duty.OuterXml);
+                }
             }
 
             XmlNodeList privileges = renamedXDoc.GetElementsByTagName("AxSecurityPrivilege");
             foreach (XmlNode privilege in privileges)
             {
                 string privilegeName = privilege["Name"]?.InnerText;
-                string fileName = privFolderPath + @"\" + privilegeName + @".xml";
-                File.WriteAllText(fileName, privilege.OuterXml);
+                if (selectedPrivs.Contains(privilegeName))
+                {
+                    string fileName = privFolderPath + @"\" + privilegeName + @".xml";
+                    File.WriteAllText(fileName, privilege.OuterXml);
+                }
             }
         }
 
@@ -173,11 +256,6 @@ namespace D365FOSecurityConverter
             return securityLayerList;
         }
 
-        private void btnExport_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void btnProcess_Click(object sender, EventArgs e)
         {
             string inputFilePath = tb_inputFile.Text;
@@ -198,7 +276,11 @@ namespace D365FOSecurityConverter
                     dgvSecurityLayers.Columns["Type"].ReadOnly = true;
                     dgvSecurityLayers.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
                     if(tb_outputFolder.Text != "")
+                    {
                         btn_ExportToCode.Enabled = true;
+                        btn_ExportToUI.Enabled = true;
+                    }
+                        
 
                     dgvSecurityLayers.Columns["Name"].SortMode = DataGridViewColumnSortMode.Automatic;
                     dgvSecurityLayers.Columns["Label"].SortMode = DataGridViewColumnSortMode.Automatic;
@@ -230,11 +312,6 @@ namespace D365FOSecurityConverter
                 btn_ExportToCode.Enabled = true;
         }
 
-        private void btnCheckAll_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void btnExportToCode_Click(object sender, EventArgs e)
         {
             FilePathCheck();
@@ -253,7 +330,15 @@ namespace D365FOSecurityConverter
         private void btnExportToUI_Click(object sender, EventArgs e)
         {
             FilePathCheck();
+            try
+            {
 
+                MessageBox.Show("Processing of security has completed successfully!", "Security File Processed Successfully", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error Processing Security File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private bool FilePathCheck()
@@ -272,9 +357,35 @@ namespace D365FOSecurityConverter
             return true;
         }
 
+        private void btnCheckAll_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void btnUncheckAll_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void dgvSecurityLayers_OnCellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if(e.ColumnIndex == dgvSecurityLayers.Columns["Selected"].Index && e.RowIndex != -1)
+            {
+                DataGridViewRow row = dgvSecurityLayers.Rows[e.RowIndex];
+                bool selected = (bool)row.Cells["Selected"].Value;
+                string name = (string)row.Cells["Name"].Value;
+                string type = (string)row.Cells["Type"].Value;
+
+                //TODO : NEED TO FIND CASCADING SECURITY ELEMENTS
+            }
+        }
+
+        private void dgvSecurityLayers_OnCellMouseUp(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.ColumnIndex == dgvSecurityLayers.Columns["Selected"].Index && e.RowIndex != -1)
+            {
+                dgvSecurityLayers.EndEdit();
+            }
         }
     }
 }
