@@ -2,6 +2,7 @@
 {
     public class SecurityLayer
     {
+        public bool Selected { get; set; }
         public string OldName { get; set; }
         public string Name { get; set; }
         public string OldLabel { get; set; }

@@ -35,7 +35,7 @@ namespace D365FOSecurityConverter
             }
         }
 
-        private void ExportSecurityXMLFiles(string inputFilePath, string outputFolderPath)
+        private void ExportSecurityToCode(string inputFilePath, string outputFolderPath)
         {
             List<SecurityLayer> securityLayerList = (List<SecurityLayer>)dgvSecurityLayers.DataSource;
             string rootFolderPath = outputFolderPath + @"\D365FOCustomizedSecurity";
@@ -52,7 +52,7 @@ namespace D365FOSecurityConverter
             xDoc.Load(inputFilePath);
 
             string xml = xDoc.OuterXml;
-            foreach(var securityLayer in securityLayerList)
+            foreach(var securityLayer in securityLayerList.Where(sl => sl.Selected == true))
             {
                 xml = ReplaceSecurityLayerParameters(xml, securityLayer);
             }
@@ -116,6 +116,7 @@ namespace D365FOSecurityConverter
                 {
                     SecurityLayer sl = new SecurityLayer
                     {
+                        Selected = false,
                         OldName = roleName,
                         Name = roleName,
                         OldLabel = role["Label"]?.InnerText ?? "",
@@ -136,6 +137,7 @@ namespace D365FOSecurityConverter
                 {
                     SecurityLayer sl = new SecurityLayer
                     {
+                        Selected = false,
                         OldName = dutyName,
                         Name = dutyName,
                         OldLabel = duty["Label"]?.InnerText ?? "",
@@ -156,6 +158,7 @@ namespace D365FOSecurityConverter
                 {
                     SecurityLayer sl = new SecurityLayer
                     {
+                        Selected = false,
                         OldName = privilegeName,
                         Name = privilegeName,
                         OldLabel = privilege["Label"]?.InnerText ?? "",
@@ -172,29 +175,7 @@ namespace D365FOSecurityConverter
 
         private void btnExport_Click(object sender, EventArgs e)
         {
-            string inputFilePath = tb_inputFile.Text;
-            string outputFolderPath = tb_outputFolder.Text;
 
-            if (!File.Exists(inputFilePath))
-            {
-                MessageBox.Show("Input file does not exist", "Error Processing File", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            else if (!Directory.Exists(outputFolderPath))
-            {
-                MessageBox.Show("Output folder path does not exist", "Error Processing File", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            else
-            {
-                try
-                {
-                    ExportSecurityXMLFiles(inputFilePath, outputFolderPath);
-                    MessageBox.Show("Processing of security has completed successfully!", "Security File Processed Successfully", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Error Processing Security File", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
         }
 
         private void btnProcess_Click(object sender, EventArgs e)
@@ -217,7 +198,7 @@ namespace D365FOSecurityConverter
                     dgvSecurityLayers.Columns["Type"].ReadOnly = true;
                     dgvSecurityLayers.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
                     if(tb_outputFolder.Text != "")
-                        btn_Export.Enabled = true;
+                        btn_ExportToCode.Enabled = true;
 
                     dgvSecurityLayers.Columns["Name"].SortMode = DataGridViewColumnSortMode.Automatic;
                     dgvSecurityLayers.Columns["Label"].SortMode = DataGridViewColumnSortMode.Automatic;
@@ -233,7 +214,7 @@ namespace D365FOSecurityConverter
 
         private void tbInputFile_TextChanged(object sender, EventArgs e)
         {
-            btn_Export.Enabled = false;
+            btn_ExportToCode.Enabled = false;
             if (tb_inputFile.Text == "")
                 btn_Process.Enabled = false;
             else
@@ -244,9 +225,56 @@ namespace D365FOSecurityConverter
         private void tbOutputFolder_TextChanged(object sender, EventArgs e)
         {
             if (tb_outputFolder.Text == "" || tb_inputFile.Text == "")
-                btn_Export.Enabled = false;
+                btn_ExportToCode.Enabled = false;
             if (tb_outputFolder.Text != "" && dgvSecurityLayers.Rows.Count > 0)
-                btn_Export.Enabled = true;
+                btn_ExportToCode.Enabled = true;
+        }
+
+        private void btnCheckAll_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnExportToCode_Click(object sender, EventArgs e)
+        {
+            FilePathCheck();
+            
+            try
+            {
+                ExportSecurityToCode(tb_inputFile.Text, tb_outputFolder.Text);
+                MessageBox.Show("Processing of security has completed successfully!", "Security File Processed Successfully", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error Processing Security File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnExportToUI_Click(object sender, EventArgs e)
+        {
+            FilePathCheck();
+
+        }
+
+        private bool FilePathCheck()
+        {
+            string inputFilePath = tb_inputFile.Text;
+            string outputFolderPath = tb_outputFolder.Text;
+
+            if (!File.Exists(inputFilePath))
+            {
+                MessageBox.Show("Input file does not exist", "Error Processing File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else if (!Directory.Exists(outputFolderPath))
+            {
+                MessageBox.Show("Output folder path does not exist", "Error Processing File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            return true;
+        }
+
+        private void btnUncheckAll_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
