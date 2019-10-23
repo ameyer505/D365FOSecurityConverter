@@ -12,6 +12,7 @@ namespace D365FOSecurityConverter
 {
     public partial class Main : Form
     {
+        static List<ParentToChildAssociation> parentToChildAssociations;
 
         public Main()
         {
@@ -62,16 +63,18 @@ namespace D365FOSecurityConverter
             string DisabledObjectSetXML = "_x003C_DisabledObjectSet_x003E_k__BackingField";
             string NewObjectListXML = "_x003C_NewObjectList_x003E_k__BackingField";
             string securityManagementNamespace = "http://schemas.datacontract.org/2004/07/Microsoft.Dynamics.AX.Security.Management";
-            string schemaNamespace = "http://www.w3.org/2001/XMLSchema-instance";  
+            string schemaNamespace = "http://www.w3.org/2001/XMLSchema-instance";
 
             XmlDocument resultXml = new XmlDocument();
             XmlElement rootElement = resultXml.CreateElement("SecurityCustomizationData");
             rootElement.SetAttribute("xmlns", securityManagementNamespace);
             rootElement.SetAttribute("xmlns:i", schemaNamespace);
 
+            XmlNamespaceManager nsm = new XmlNamespaceManager(resultXml.NameTable);
+            nsm.AddNamespace("i", securityManagementNamespace);
+
             XmlNode customizationsForTypeList = rootElement.AppendChild(resultXml.CreateElement(CustomizationsforTypeListXML));
             
-
             XmlNodeList customizationList = renamedXDoc.GetElementsByTagName("BaseRepositoryCustomizations");
             foreach(XmlNode customization in customizationList)
             {
@@ -82,25 +85,32 @@ namespace D365FOSecurityConverter
                     baseRepositoryCustomizations_Role.SetAttribute("i:type", "RepositoryCustomizationsOfAxSecurityRoleNcCATIYq");
                     XmlNode baseRepositoryCustomizationsRoleNode = customizationsForTypeList.AppendChild(baseRepositoryCustomizations_Role);
                     XmlNode customizedObjectListRole = baseRepositoryCustomizationsRoleNode.AppendChild(resultXml.CreateElement(CustomizedObjectListXML));
-                    XmlNodeList customizedRoles = customization.SelectNodes(@"/"+CustomizedObjectListXML+"/AxSecurityRole");
+
+                    string query = "//i:" + CustomizedObjectListXML + "//AxSecurityRole";
+                    XmlNodeList customizedRoles = customization.SelectNodes(query, nsm);
 
                     foreach (XmlNode customizedRole in customizedRoles)
                     {
                         string roleName = customizedRole["Name"]?.InnerText;
                         if (selectedRoles.Contains(roleName))
-                            customizedObjectListRole.AppendChild(customizedRole);
+                        {
+                            XmlNode importRole = customizedObjectListRole.OwnerDocument.ImportNode(customizedRole, true);
+                            customizedObjectListRole.AppendChild(importRole);
+                        }
                     }
 
                     XmlNode disabledObjectSetRole = baseRepositoryCustomizationsRoleNode.AppendChild(resultXml.CreateElement(DisabledObjectSetXML));
 
                     XmlNode newObjectListRole = baseRepositoryCustomizationsRoleNode.AppendChild(resultXml.CreateElement(NewObjectListXML));
-                    XmlNodeList createdRoles = customization.SelectNodes(@"/"+NewObjectListXML+"/AxSecurityRole");
+                    query = "//i:" + NewObjectListXML + "//AxSecurityRole";
+                    XmlNodeList createdRoles = customization.SelectNodes(query, nsm);
                     foreach(XmlNode createdRole in createdRoles)
                     {
                         string roleName = createdRole["Name"]?.InnerText;
                         if (selectedRoles.Contains(roleName))
                         {
-                            newObjectListRole.AppendChild(createdRole);
+                            XmlNode importRole = newObjectListRole.OwnerDocument.ImportNode(createdRole, true);
+                            newObjectListRole.AppendChild(importRole);
                         }
                     }
                 }
@@ -111,57 +121,68 @@ namespace D365FOSecurityConverter
                     baseRepositoryCustomizations_Duty.SetAttribute("i:type", "RepositoryCustomizationsOfAxSecurityDutyNcCATIYq");
                     XmlNode baseRepositoryCustomizationsDutyNode = customizationsForTypeList.AppendChild(baseRepositoryCustomizations_Duty);
                     XmlNode customizedObjectListDuty = baseRepositoryCustomizationsDutyNode.AppendChild(resultXml.CreateElement(CustomizedObjectListXML));
-                    XmlNodeList customizedDuties = customization.SelectNodes(@"/" + CustomizedObjectListXML + "/AxSecurityDuty");
+
+                    string query = "//i:" + CustomizedObjectListXML + "//AxSecurityDuty";
+                    XmlNodeList customizedDuties = customization.SelectNodes(query, nsm);
 
                     foreach(XmlNode customizedDuty in customizedDuties)
                     {
                         string dutyName = customizedDuty["Name"]?.InnerText;
                         if (selectedDuties.Contains(dutyName))
-                            customizedObjectListDuty.AppendChild(customizedDuty);
+                        {
+                            XmlNode importDuty = customizedObjectListDuty.OwnerDocument.ImportNode(customizedDuty, true);
+                            customizedObjectListDuty.AppendChild(importDuty);
+                        }
+                            
                     }
 
                     XmlNode disabledObjectSetDuty = baseRepositoryCustomizationsDutyNode.AppendChild(resultXml.CreateElement(DisabledObjectSetXML));
 
                     XmlNode newObjectListDuty = baseRepositoryCustomizationsDutyNode.AppendChild(resultXml.CreateElement(NewObjectListXML));
-                    XmlNodeList createdDuties = customization.SelectNodes(@"/" + NewObjectListXML + "/AxSecurityDuty");
+                    query = "//i:" + NewObjectListXML + "//AxSecurityDuty";
+                    XmlNodeList createdDuties = customization.SelectNodes(query, nsm);
                     foreach (XmlNode createdDuty in createdDuties)
                     {
                         string dutyName = createdDuty["Name"]?.InnerText;
                         if (selectedDuties.Contains(dutyName))
                         {
-                            newObjectListDuty.AppendChild(createdDuty);
+                            XmlNode importDuty = newObjectListDuty.OwnerDocument.ImportNode(createdDuty, true);
+                            newObjectListDuty.AppendChild(importDuty);
                         }
                     }
                 }
                 //Privileges
                 else if (customization.Attributes["i:type"].Value.Contains("Privilege"))
                 {
-                    XmlNamespaceManager nsm = new XmlNamespaceManager(resultXml.NameTable);
-                    nsm.AddNamespace("i", securityManagementNamespace);
-                    
                     XmlElement baseRepositoryCustomizations_Privilege = resultXml.CreateElement("BaseRepositoryCustomizations");
                     baseRepositoryCustomizations_Privilege.SetAttribute("i:type", "RepositoryCustomizationsOfAxSecurityPrivilegeNcCATIYq");
                     XmlNode baseRepositoryCustomizationsPrivilegeNode = customizationsForTypeList.AppendChild(baseRepositoryCustomizations_Privilege);
                     XmlNode customizedObjectListPrivilege = baseRepositoryCustomizationsPrivilegeNode.AppendChild(resultXml.CreateElement(CustomizedObjectListXML));
 
-                    XmlNodeList customizedPrivileges = customization.FirstChild.SelectNodes("AxSecurityPrivilege");
+                    string query = "//i:" + CustomizedObjectListXML+"//AxSecurityPrivilege";
+                    XmlNodeList customizedPrivileges = customization.SelectNodes(query, nsm);
                     foreach (XmlNode customizedPrivilege in customizedPrivileges)
                     {
                         string privilegeName = customizedPrivilege["Name"]?.InnerText;
-                        if (selectedDuties.Contains(privilegeName))
-                            customizedObjectListPrivilege.AppendChild(customizedPrivilege);
+                        if (selectedPrivs.Contains(privilegeName))
+                        {
+                            XmlNode importPriv = customizedObjectListPrivilege.OwnerDocument.ImportNode(customizedPrivilege, true);
+                            customizedObjectListPrivilege.AppendChild(importPriv);
+                        }
                     }
 
                     XmlNode disabledObjectSetPriv = baseRepositoryCustomizationsPrivilegeNode.AppendChild(resultXml.CreateElement(DisabledObjectSetXML));
 
-                    XmlNode newObjectListDuty = baseRepositoryCustomizationsPrivilegeNode.AppendChild(resultXml.CreateElement(NewObjectListXML));
-                    XmlNodeList createdPrivileges = customization.SelectNodes(@"/" + NewObjectListXML + "/AxSecurityPrivilege");
+                    XmlNode newObjectListPriv = baseRepositoryCustomizationsPrivilegeNode.AppendChild(resultXml.CreateElement(NewObjectListXML));
+                    query = "//i:" + NewObjectListXML + "//AxSecurityPrivilege";
+                    XmlNodeList createdPrivileges = customization.SelectNodes(query, nsm);
                     foreach (XmlNode createdPrivilege in createdPrivileges)
                     {
                         string privilegeName = createdPrivilege["Name"]?.InnerText;
                         if (selectedPrivs.Contains(privilegeName))
                         {
-                            newObjectListDuty.AppendChild(createdPrivilege);
+                            XmlNode importPriv = newObjectListPriv.OwnerDocument.ImportNode(createdPrivilege, true);
+                            newObjectListPriv.AppendChild(importPriv);
                         }
                     }
                 }
@@ -345,9 +366,71 @@ namespace D365FOSecurityConverter
             return securityLayerList;
         }
 
+        private List<ParentToChildAssociation> ProcessSecurityLayerAssociations(string inputFilePath)
+        {
+            List<ParentToChildAssociation> securityLayerAssociations = new List<ParentToChildAssociation>();
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(inputFilePath);
+
+            XmlNodeList roles = xDoc.GetElementsByTagName("AxSecurityRole");
+            foreach (XmlNode role in roles)
+            {
+                XmlNodeList roleSubRoles = role.SelectNodes("//SubRoles//AxSecurityRoleReference");
+                foreach(XmlNode roleSubRole in roleSubRoles)
+                {
+                    ParentToChildAssociation pca = new ParentToChildAssociation();
+                    pca.ParentSystemName = role["Name"]?.InnerText;
+                    pca.ParentType = "Role";
+                    pca.ChildSystemName = roleSubRole["Name"]?.InnerText;
+                    pca.childType = "Role";
+                    securityLayerAssociations.Add(pca);
+                }
+
+                XmlNodeList roleDuties = role.SelectNodes("//Duties//AxSecurityDutyReference");
+                foreach(XmlNode roleDuty in roleDuties)
+                {
+                    ParentToChildAssociation pca = new ParentToChildAssociation();
+                    pca.ParentSystemName = role["Name"]?.InnerText;
+                    pca.ParentType = "Role";
+                    pca.ChildSystemName = roleDuty["Name"]?.InnerText;
+                    pca.childType = "Duty";
+                    securityLayerAssociations.Add(pca);
+                }
+
+                XmlNodeList rolePrivs = role.SelectNodes("//Privileges//AxSecurityPrivilegeReference");
+                foreach(XmlNode rolePriv in rolePrivs)
+                {
+                    ParentToChildAssociation pca = new ParentToChildAssociation();
+                    pca.ParentSystemName = role["Name"]?.InnerText;
+                    pca.ParentType = "Role";
+                    pca.ChildSystemName = rolePriv["Name"]?.InnerText;
+                    pca.childType = "Privilege";
+                    securityLayerAssociations.Add(pca);
+                }
+            }
+
+            XmlNodeList duties = xDoc.GetElementsByTagName("AxSecurityDuty");
+            foreach (XmlNode duty in duties)
+            {
+                XmlNodeList dutyPrivs = duty.SelectNodes("//Privileges//AxSecurityPrivilegeReference");
+                foreach(XmlNode dutyPriv in dutyPrivs)
+                {
+                    ParentToChildAssociation pca = new ParentToChildAssociation();
+                    pca.ParentSystemName = duty["Name"]?.InnerText;
+                    pca.ParentType = "Role";
+                    pca.ChildSystemName = dutyPriv["Name"]?.InnerText;
+                    pca.childType = "Privilege";
+                    securityLayerAssociations.Add(pca);
+                }
+            }
+
+            return securityLayerAssociations;
+        }
+
         private void btnProcess_Click(object sender, EventArgs e)
         {
             string inputFilePath = tb_inputFile.Text;
+            parentToChildAssociations = new List<ParentToChildAssociation>();
 
             if (!File.Exists(inputFilePath))
             {
@@ -358,6 +441,7 @@ namespace D365FOSecurityConverter
                 try
                 {
                     BindingListView<SecurityLayer> blv = new BindingListView<SecurityLayer>(ParseInputXML(inputFilePath));
+                    parentToChildAssociations.AddRange(ProcessSecurityLayerAssociations(inputFilePath));
                     dgvSecurityLayers.DataSource = blv;
                     dgvSecurityLayers.Columns["OldName"].Visible = false;
                     dgvSecurityLayers.Columns["OldLabel"].Visible = false;
@@ -386,19 +470,27 @@ namespace D365FOSecurityConverter
         private void tbInputFile_TextChanged(object sender, EventArgs e)
         {
             btn_ExportToCode.Enabled = false;
+            btn_ExportToUI.Enabled = false;
             if (tb_inputFile.Text == "")
                 btn_Process.Enabled = false;
             else
                 btn_Process.Enabled = true;
-
         }
 
         private void tbOutputFolder_TextChanged(object sender, EventArgs e)
         {
             if (tb_outputFolder.Text == "" || tb_inputFile.Text == "")
+            {
                 btn_ExportToCode.Enabled = false;
+                btn_ExportToUI.Enabled = false;
+            }
+                
             if (tb_outputFolder.Text != "" && dgvSecurityLayers.Rows.Count > 0)
+            {
                 btn_ExportToCode.Enabled = true;
+                btn_ExportToUI.Enabled = true;
+            }
+                
         }
 
         private void btnExportToCode_Click(object sender, EventArgs e)
@@ -448,12 +540,22 @@ namespace D365FOSecurityConverter
 
         private void btnCheckAll_Click(object sender, EventArgs e)
         {
-
+            int rowCount = dgvSecurityLayers.Rows.Count;
+            for(int i = 0; i < rowCount; i++)
+            {
+                DataGridViewRow row = dgvSecurityLayers.Rows[i];
+                row.Cells["Selected"].Value = true;
+            }
         }
 
         private void btnUncheckAll_Click(object sender, EventArgs e)
         {
-
+            int rowCount = dgvSecurityLayers.Rows.Count;
+            for (int i = 0; i < rowCount; i++)
+            {
+                DataGridViewRow row = dgvSecurityLayers.Rows[i];
+                row.Cells["Selected"].Value = false;
+            }
         }
 
         private void dgvSecurityLayers_OnCellValueChanged(object sender, DataGridViewCellEventArgs e)
