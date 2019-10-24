@@ -56,8 +56,10 @@
     <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\ParentToChildAssociation.cs" />
     <Compile Include="Models\SecurityLayer.cs" />
+    <Compile Include="Models\SecurityLayerGridObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Main.resx">

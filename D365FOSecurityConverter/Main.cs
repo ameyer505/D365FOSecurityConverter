@@ -39,7 +39,7 @@ namespace D365FOSecurityConverter
 
         private void ExportSecurityToUI(string inputFilePath, string outputFilePath)
         {
-            List<SecurityLayer> securityLayerList = ConvertGridToObjects();
+            List<SecurityLayerGridObject> securityLayerList = ConvertGridToObjects();
 
             XmlDocument xDoc = new XmlDocument();
             xDoc.Load(inputFilePath);
@@ -192,14 +192,14 @@ namespace D365FOSecurityConverter
             resultXml.Save(outputFilePath + @"\SecurityDatabaseCustomizations.xml");
         }
 
-        private List<SecurityLayer> ConvertGridToObjects()
+        private List<SecurityLayerGridObject> ConvertGridToObjects()
         {
-            List<SecurityLayer> securityLayers = new List<SecurityLayer>();
+            List<SecurityLayerGridObject> securityLayers = new List<SecurityLayerGridObject>();
             int count = dgvSecurityLayers.RowCount;
             for (int index = 0; index < count; index++)
             {
                 DataGridViewRow row = dgvSecurityLayers.Rows[index];
-                SecurityLayer sl = new SecurityLayer()
+                SecurityLayerGridObject sl = new SecurityLayerGridObject()
                 {
                     Selected = (bool)row.Cells["Selected"].Value,
                     OldName = (string)row.Cells["OldName"].Value,
@@ -217,7 +217,7 @@ namespace D365FOSecurityConverter
 
         private void ExportSecurityToCode(string inputFilePath, string outputFolderPath)
         {
-            List<SecurityLayer> securityLayerList = ConvertGridToObjects();
+            List<SecurityLayerGridObject> securityLayerList = ConvertGridToObjects();
             string rootFolderPath = outputFolderPath + @"\D365FOCustomizedSecurity";
             string roleFolderPath = rootFolderPath + @"\AxSecurityRole";
             string dutyFolderPath = rootFolderPath + @"\AxSecurityDuty";
@@ -279,7 +279,7 @@ namespace D365FOSecurityConverter
             }
         }
 
-        private string ReplaceSecurityLayerParameters(string xml, SecurityLayer securityLayer)
+        private string ReplaceSecurityLayerParameters(string xml, SecurityLayerGridObject securityLayer)
         {
             if(securityLayer.OldName != securityLayer.Name)
             {
@@ -296,9 +296,9 @@ namespace D365FOSecurityConverter
             return xml;
         }
 
-        private List<SecurityLayer> ParseInputXML(string inputFilePath)
+        private List<SecurityLayerGridObject> ParseInputXML(string inputFilePath)
         {
-            List<SecurityLayer> securityLayerList = new List<SecurityLayer>();
+            List<SecurityLayerGridObject> securityLayerList = new List<SecurityLayerGridObject>();
             XmlDocument xDoc = new XmlDocument();
             xDoc.Load(inputFilePath);
             XmlNodeList roles = xDoc.GetElementsByTagName("AxSecurityRole");
@@ -307,7 +307,7 @@ namespace D365FOSecurityConverter
                 string roleName = role["Name"]?.InnerText;
                 if (roleName != null)
                 {
-                    SecurityLayer sl = new SecurityLayer
+                    SecurityLayerGridObject sl = new SecurityLayerGridObject
                     {
                         Selected = false,
                         OldName = roleName,
@@ -328,7 +328,7 @@ namespace D365FOSecurityConverter
                 string dutyName = duty["Name"]?.InnerText;
                 if(dutyName != null)
                 {
-                    SecurityLayer sl = new SecurityLayer
+                    SecurityLayerGridObject sl = new SecurityLayerGridObject
                     {
                         Selected = false,
                         OldName = dutyName,
@@ -349,7 +349,7 @@ namespace D365FOSecurityConverter
                 string privilegeName = privilege["Name"]?.InnerText;
                 if(privilegeName != null)
                 {
-                    SecurityLayer sl = new SecurityLayer
+                    SecurityLayerGridObject sl = new SecurityLayerGridObject
                     {
                         Selected = false,
                         OldName = privilegeName,
@@ -375,36 +375,36 @@ namespace D365FOSecurityConverter
             XmlNodeList roles = xDoc.GetElementsByTagName("AxSecurityRole");
             foreach (XmlNode role in roles)
             {
-                XmlNodeList roleSubRoles = role.SelectNodes("//SubRoles//AxSecurityRoleReference");
+                XmlNodeList roleSubRoles = role.SelectNodes("SubRoles//AxSecurityRoleReference");
                 foreach(XmlNode roleSubRole in roleSubRoles)
                 {
                     ParentToChildAssociation pca = new ParentToChildAssociation();
                     pca.ParentSystemName = role["Name"]?.InnerText;
-                    pca.ParentType = "Role";
+                    pca.ParentType = LayerType.Role;
                     pca.ChildSystemName = roleSubRole["Name"]?.InnerText;
-                    pca.childType = "Role";
+                    pca.ChildType = LayerType.Role;
                     securityLayerAssociations.Add(pca);
                 }
 
-                XmlNodeList roleDuties = role.SelectNodes("//Duties//AxSecurityDutyReference");
+                XmlNodeList roleDuties = role.SelectNodes("Duties//AxSecurityDutyReference");
                 foreach(XmlNode roleDuty in roleDuties)
                 {
                     ParentToChildAssociation pca = new ParentToChildAssociation();
                     pca.ParentSystemName = role["Name"]?.InnerText;
-                    pca.ParentType = "Role";
+                    pca.ParentType = LayerType.Role;
                     pca.ChildSystemName = roleDuty["Name"]?.InnerText;
-                    pca.childType = "Duty";
+                    pca.ChildType = LayerType.Duty;
                     securityLayerAssociations.Add(pca);
                 }
 
-                XmlNodeList rolePrivs = role.SelectNodes("//Privileges//AxSecurityPrivilegeReference");
+                XmlNodeList rolePrivs = role.SelectNodes("Privileges//AxSecurityPrivilegeReference");
                 foreach(XmlNode rolePriv in rolePrivs)
                 {
                     ParentToChildAssociation pca = new ParentToChildAssociation();
                     pca.ParentSystemName = role["Name"]?.InnerText;
-                    pca.ParentType = "Role";
+                    pca.ParentType = LayerType.Role;
                     pca.ChildSystemName = rolePriv["Name"]?.InnerText;
-                    pca.childType = "Privilege";
+                    pca.ChildType = LayerType.Privilege;
                     securityLayerAssociations.Add(pca);
                 }
             }
@@ -412,14 +412,14 @@ namespace D365FOSecurityConverter
             XmlNodeList duties = xDoc.GetElementsByTagName("AxSecurityDuty");
             foreach (XmlNode duty in duties)
             {
-                XmlNodeList dutyPrivs = duty.SelectNodes("//Privileges//AxSecurityPrivilegeReference");
+                XmlNodeList dutyPrivs = duty.SelectNodes("Privileges//AxSecurityPrivilegeReference");
                 foreach(XmlNode dutyPriv in dutyPrivs)
                 {
                     ParentToChildAssociation pca = new ParentToChildAssociation();
                     pca.ParentSystemName = duty["Name"]?.InnerText;
-                    pca.ParentType = "Role";
+                    pca.ParentType = LayerType.Duty;
                     pca.ChildSystemName = dutyPriv["Name"]?.InnerText;
-                    pca.childType = "Privilege";
+                    pca.ChildType = LayerType.Privilege;
                     securityLayerAssociations.Add(pca);
                 }
             }
@@ -440,7 +440,7 @@ namespace D365FOSecurityConverter
             {
                 try
                 {
-                    BindingListView<SecurityLayer> blv = new BindingListView<SecurityLayer>(ParseInputXML(inputFilePath));
+                    BindingListView<SecurityLayerGridObject> blv = new BindingListView<SecurityLayerGridObject>(ParseInputXML(inputFilePath));
                     parentToChildAssociations.AddRange(ProcessSecurityLayerAssociations(inputFilePath));
                     dgvSecurityLayers.DataSource = blv;
                     dgvSecurityLayers.Columns["OldName"].Visible = false;
@@ -562,13 +562,44 @@ namespace D365FOSecurityConverter
         {
             if(e.ColumnIndex == dgvSecurityLayers.Columns["Selected"].Index && e.RowIndex != -1)
             {
-                DataGridViewRow row = dgvSecurityLayers.Rows[e.RowIndex];
-                bool selected = (bool)row.Cells["Selected"].Value;
-                string name = (string)row.Cells["Name"].Value;
-                string type = (string)row.Cells["Type"].Value;
+                DataGridViewRow selectedRow = dgvSecurityLayers.Rows[e.RowIndex];
+                bool selected = (bool)selectedRow.Cells["Selected"].Value;
+                string name = (string)selectedRow.Cells["Name"].Value;
+                string typeStr = (string)selectedRow.Cells["Type"].Value;
+                LayerType type;
+                Enum.TryParse(typeStr, out type);
 
-                //TODO : NEED TO FIND CASCADING SECURITY ELEMENTS
+                List<SecurityLayer> ObjectsToSelect = new List<SecurityLayer>();
+                ProcessCascadeSecurityElements(name, type, ObjectsToSelect);
+
+                int rowCount = dgvSecurityLayers.Rows.Count;
+                for (int i = 0; i < rowCount; i++)
+                {
+                    DataGridViewRow row = dgvSecurityLayers.Rows[i];
+                    string securityLayerName = (string)row.Cells["Name"].Value;
+                    string securityLayerTypeStr = (string)row.Cells["Type"].Value;
+                    LayerType securityLayerType;
+                    Enum.TryParse(securityLayerTypeStr, out securityLayerType);
+                    if (ObjectsToSelect.Any(o =>
+                         string.Equals(o.Name, securityLayerName, StringComparison.CurrentCultureIgnoreCase) && o.Type == securityLayerType))
+                        row.Cells["Selected"].Value = true;
+                }
             }
+        }
+        
+        private void ProcessCascadeSecurityElements(string name, LayerType type, List<SecurityLayer> objectList)
+        {
+           objectList.Add(new SecurityLayer(){
+               Name = name,
+               Type = type
+           });
+
+            IEnumerable<ParentToChildAssociation> cascadeObjects = parentToChildAssociations.Where(pca =>
+                string.Equals(pca.ParentSystemName, name, StringComparison.CurrentCultureIgnoreCase) &&
+                pca.ParentType == type);
+
+            foreach (var cascadeObject in cascadeObjects)
+                ProcessCascadeSecurityElements(cascadeObject.ChildSystemName, cascadeObject.ChildType, objectList);
         }
 
         private void dgvSecurityLayers_OnCellMouseUp(object sender, DataGridViewCellMouseEventArgs e)
