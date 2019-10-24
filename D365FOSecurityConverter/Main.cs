@@ -1,4 +1,4 @@
-﻿using D365FOSecurityConverter.Models;
+using D365FOSecurityConverter.Models;
 using Equin.ApplicationFramework;
 using System;
 using System.Collections.Generic;
