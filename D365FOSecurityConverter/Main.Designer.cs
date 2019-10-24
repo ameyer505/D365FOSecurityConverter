@@ -34,11 +34,14 @@
             this.btn_inputFileBrowse = new System.Windows.Forms.Button();
             this.tb_outputFolder = new System.Windows.Forms.TextBox();
             this.btn_outputFolderBrowse = new System.Windows.Forms.Button();
-            this.btn_Export = new System.Windows.Forms.Button();
+            this.btn_ExportToCode = new System.Windows.Forms.Button();
             this.inputFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.outputFolderDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.dgvSecurityLayers = new System.Windows.Forms.DataGridView();
             this.btn_Process = new System.Windows.Forms.Button();
+            this.btn_checkAll = new System.Windows.Forms.Button();
+            this.btn_ExportToUI = new System.Windows.Forms.Button();
+            this.btn_UncheckAll = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSecurityLayers)).BeginInit();
             this.SuspendLayout();
             // 
@@ -96,17 +99,17 @@
             this.btn_outputFolderBrowse.UseVisualStyleBackColor = true;
             this.btn_outputFolderBrowse.Click += new System.EventHandler(this.btnOutputFolderBrowse_Click);
             // 
-            // btn_Export
+            // btn_ExportToCode
             // 
-            this.btn_Export.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btn_Export.Enabled = false;
-            this.btn_Export.Location = new System.Drawing.Point(578, 362);
-            this.btn_Export.Name = "btn_Export";
-            this.btn_Export.Size = new System.Drawing.Size(75, 23);
-            this.btn_Export.TabIndex = 6;
-            this.btn_Export.Text = "Export";
-            this.btn_Export.UseVisualStyleBackColor = true;
-            this.btn_Export.Click += new System.EventHandler(this.btnExport_Click);
+            this.btn_ExportToCode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_ExportToCode.Enabled = false;
+            this.btn_ExportToCode.Location = new System.Drawing.Point(507, 362);
+            this.btn_ExportToCode.Name = "btn_ExportToCode";
+            this.btn_ExportToCode.Size = new System.Drawing.Size(146, 23);
+            this.btn_ExportToCode.TabIndex = 6;
+            this.btn_ExportToCode.Text = "Export To Code";
+            this.btn_ExportToCode.UseVisualStyleBackColor = true;
+            this.btn_ExportToCode.Click += new System.EventHandler(this.btnExportToCode_Click);
             // 
             // inputFileDialog
             // 
@@ -127,6 +130,8 @@
             this.dgvSecurityLayers.RowHeadersVisible = false;
             this.dgvSecurityLayers.Size = new System.Drawing.Size(641, 197);
             this.dgvSecurityLayers.TabIndex = 7;
+            this.dgvSecurityLayers.CellMouseUp += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvSecurityLayers_OnCellMouseUp);
+            this.dgvSecurityLayers.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvSecurityLayers_OnCellValueChanged);
             // 
             // btn_Process
             // 
@@ -140,14 +145,51 @@
             this.btn_Process.UseVisualStyleBackColor = true;
             this.btn_Process.Click += new System.EventHandler(this.btnProcess_Click);
             // 
+            // btn_checkAll
+            // 
+            this.btn_checkAll.Enabled = false;
+            this.btn_checkAll.Location = new System.Drawing.Point(12, 130);
+            this.btn_checkAll.Name = "btn_checkAll";
+            this.btn_checkAll.Size = new System.Drawing.Size(75, 23);
+            this.btn_checkAll.TabIndex = 9;
+            this.btn_checkAll.Text = "Check All";
+            this.btn_checkAll.UseVisualStyleBackColor = true;
+            this.btn_checkAll.Click += new System.EventHandler(this.btnCheckAll_Click);
+            // 
+            // btn_ExportToUI
+            // 
+            this.btn_ExportToUI.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btn_ExportToUI.Enabled = false;
+            this.btn_ExportToUI.Location = new System.Drawing.Point(12, 362);
+            this.btn_ExportToUI.Name = "btn_ExportToUI";
+            this.btn_ExportToUI.Size = new System.Drawing.Size(156, 23);
+            this.btn_ExportToUI.TabIndex = 10;
+            this.btn_ExportToUI.Text = "Export To UI";
+            this.btn_ExportToUI.UseVisualStyleBackColor = true;
+            this.btn_ExportToUI.Click += new System.EventHandler(this.btnExportToUI_Click);
+            // 
+            // btn_UncheckAll
+            // 
+            this.btn_UncheckAll.Enabled = false;
+            this.btn_UncheckAll.Location = new System.Drawing.Point(94, 130);
+            this.btn_UncheckAll.Name = "btn_UncheckAll";
+            this.btn_UncheckAll.Size = new System.Drawing.Size(75, 23);
+            this.btn_UncheckAll.TabIndex = 11;
+            this.btn_UncheckAll.Text = "Uncheck All";
+            this.btn_UncheckAll.UseVisualStyleBackColor = true;
+            this.btn_UncheckAll.Click += new System.EventHandler(this.btnUncheckAll_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(665, 397);
+            this.Controls.Add(this.btn_UncheckAll);
+            this.Controls.Add(this.btn_ExportToUI);
+            this.Controls.Add(this.btn_checkAll);
             this.Controls.Add(this.btn_Process);
             this.Controls.Add(this.dgvSecurityLayers);
-            this.Controls.Add(this.btn_Export);
+            this.Controls.Add(this.btn_ExportToCode);
             this.Controls.Add(this.btn_outputFolderBrowse);
             this.Controls.Add(this.tb_outputFolder);
             this.Controls.Add(this.btn_inputFileBrowse);
@@ -170,11 +212,14 @@
         private System.Windows.Forms.Button btn_inputFileBrowse;
         private System.Windows.Forms.TextBox tb_outputFolder;
         private System.Windows.Forms.Button btn_outputFolderBrowse;
-        private System.Windows.Forms.Button btn_Export;
+        private System.Windows.Forms.Button btn_ExportToCode;
         private System.Windows.Forms.OpenFileDialog inputFileDialog;
         private System.Windows.Forms.FolderBrowserDialog outputFolderDialog;
         private System.Windows.Forms.DataGridView dgvSecurityLayers;
         private System.Windows.Forms.Button btn_Process;
+        private System.Windows.Forms.Button btn_checkAll;
+        private System.Windows.Forms.Button btn_ExportToUI;
+        private System.Windows.Forms.Button btn_UncheckAll;
     }
 }
 
