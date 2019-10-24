@@ -41,7 +41,7 @@
             this.btn_Process = new System.Windows.Forms.Button();
             this.btn_checkAll = new System.Windows.Forms.Button();
             this.btn_ExportToUI = new System.Windows.Forms.Button();
-            this.btnUncheckAll = new System.Windows.Forms.Button();
+            this.btn_UncheckAll = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSecurityLayers)).BeginInit();
             this.SuspendLayout();
             // 
@@ -147,6 +147,7 @@
             // 
             // btn_checkAll
             // 
+            this.btn_checkAll.Enabled = false;
             this.btn_checkAll.Location = new System.Drawing.Point(12, 130);
             this.btn_checkAll.Name = "btn_checkAll";
             this.btn_checkAll.Size = new System.Drawing.Size(75, 23);
@@ -157,6 +158,8 @@
             // 
             // btn_ExportToUI
             // 
+            this.btn_ExportToUI.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btn_ExportToUI.Enabled = false;
             this.btn_ExportToUI.Location = new System.Drawing.Point(12, 362);
             this.btn_ExportToUI.Name = "btn_ExportToUI";
             this.btn_ExportToUI.Size = new System.Drawing.Size(156, 23);
@@ -165,22 +168,23 @@
             this.btn_ExportToUI.UseVisualStyleBackColor = true;
             this.btn_ExportToUI.Click += new System.EventHandler(this.btnExportToUI_Click);
             // 
-            // btnUncheckAll
+            // btn_UncheckAll
             // 
-            this.btnUncheckAll.Location = new System.Drawing.Point(94, 130);
-            this.btnUncheckAll.Name = "btnUncheckAll";
-            this.btnUncheckAll.Size = new System.Drawing.Size(75, 23);
-            this.btnUncheckAll.TabIndex = 11;
-            this.btnUncheckAll.Text = "Uncheck All";
-            this.btnUncheckAll.UseVisualStyleBackColor = true;
-            this.btnUncheckAll.Click += new System.EventHandler(this.btnUncheckAll_Click);
+            this.btn_UncheckAll.Enabled = false;
+            this.btn_UncheckAll.Location = new System.Drawing.Point(94, 130);
+            this.btn_UncheckAll.Name = "btn_UncheckAll";
+            this.btn_UncheckAll.Size = new System.Drawing.Size(75, 23);
+            this.btn_UncheckAll.TabIndex = 11;
+            this.btn_UncheckAll.Text = "Uncheck All";
+            this.btn_UncheckAll.UseVisualStyleBackColor = true;
+            this.btn_UncheckAll.Click += new System.EventHandler(this.btnUncheckAll_Click);
             // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(665, 397);
-            this.Controls.Add(this.btnUncheckAll);
+            this.Controls.Add(this.btn_UncheckAll);
             this.Controls.Add(this.btn_ExportToUI);
             this.Controls.Add(this.btn_checkAll);
             this.Controls.Add(this.btn_Process);
@@ -215,7 +219,7 @@
         private System.Windows.Forms.Button btn_Process;
         private System.Windows.Forms.Button btn_checkAll;
         private System.Windows.Forms.Button btn_ExportToUI;
-        private System.Windows.Forms.Button btnUncheckAll;
+        private System.Windows.Forms.Button btn_UncheckAll;
     }
 }
 
