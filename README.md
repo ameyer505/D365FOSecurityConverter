@@ -1,6 +1,6 @@
 # Dynamics 365 for Finance and Operations Security Converter
 
-This project is designed to convert the XML output a user gets from exporting security from the user interface in D365FO to the XML needed to either: 
+This project is designed to convert the SecurityDatabaseCustomization.xml output file a user gets from exporting security from the user interface in D365FO to the XML needed to either: 
 - Create security elements in code via the AOT
 - Generate security XML to import via D365FO user interface into another D365FO enviornment
 
@@ -11,7 +11,7 @@ PathToFile/SecurityDatabaseCustomizations.xml
 
 ## Output Folder
 UI Output:
-Will create an XML file title SecurityDatabaseCustomizations.xml
+Will create an XML file called SecurityDatabaseCustomizations.xml
 
 Code Output:
 Will create a folder with the following structure:
