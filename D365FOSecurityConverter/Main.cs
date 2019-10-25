@@ -222,163 +222,49 @@ namespace D365FOSecurityConverter
                 xml = ReplaceSecurityLayerParameters(xml, securityLayer);
             }
 
+            IEnumerable<string> securityLayersToRemove = ConvertGridToObjects().Where(sl => sl.Selected == false).Select(x => x.Name);
+
             XmlDocument renamedXDoc = new XmlDocument();
             TextReader tr = new StringReader(xml);
             renamedXDoc.Load(tr);
 
-            IEnumerable<string> selectedRoles = securityLayerList.Where(sl => sl.Selected == true && sl.Type == "Role").Select(x => x.Name);
-            IEnumerable<string> selectedDuties = securityLayerList.Where(sl => sl.Selected == true && sl.Type == "Duty").Select(x => x.Name);
-            IEnumerable<string> selectedPrivs = securityLayerList.Where(sl => sl.Selected == true && sl.Type == "Privilege").Select(x => x.Name);
-
-            string CustomizationsforTypeListXML = "_x003C_CustomizationsForTypeList_x003E_k__BackingField";
-            string CustomizedObjectListXML = "_x003C_CustomizedObjectList_x003E_k__BackingField";
-            string DisabledObjectSetXML = "_x003C_DisabledObjectSet_x003E_k__BackingField";
-            string NewObjectListXML = "_x003C_NewObjectList_x003E_k__BackingField";
-            string securityManagementNamespace = "http://schemas.datacontract.org/2004/07/Microsoft.Dynamics.AX.Security.Management";
-            string schemaNamespace = "http://www.w3.org/2001/XMLSchema-instance";
-            string arrayNamespace = "http://schemas.microsoft.com/2003/10/Serialization/Arrays";
-            string repoCustRole = "RepositoryCustomizationsOfAxSecurityRoleNcCATIYq";
-            string repoCustDuty = "RepositoryCustomizationsOfAxSecurityDutyNcCATIYq";
-            string repoCustPriv = "RepositoryCustomizationsOfAxSecurityPrivilegeNcCATIYq";
-
-            XmlDocument resultXml = new XmlDocument();
-            XmlElement rootElement = resultXml.CreateElement("SecurityCustomizationData");
-            rootElement.SetAttribute("xmlns", securityManagementNamespace);
-            rootElement.SetAttribute("xmlns:i", schemaNamespace);
-
-            XmlNamespaceManager nsm = new XmlNamespaceManager(resultXml.NameTable);
-            nsm.AddNamespace("x", securityManagementNamespace);
-            nsm.AddNamespace("i", "type");
-
-            XmlNode customizationsForTypeList = rootElement.AppendChild(resultXml.CreateElement(CustomizationsforTypeListXML));
-
-            XmlNodeList customizationList = renamedXDoc.GetElementsByTagName("BaseRepositoryCustomizations");
-            foreach (XmlNode customization in customizationList)
+            XmlNodeList roles = renamedXDoc.GetElementsByTagName("AxSecurityRole");
+            List<XmlNode> rolesToRemove = new List<XmlNode>();
+            foreach (XmlNode role in roles)
             {
-                //Roles
-                if (customization.Attributes["i:type"].Value.Contains("Role"))
-                {
-                    XmlElement baseRepositoryCustomizations_Role = resultXml.CreateElement("BaseRepositoryCustomizations");
-                    XmlAttribute attrib = resultXml.CreateAttribute("i", "type", schemaNamespace);
-                    attrib.Value = repoCustRole;
-                    baseRepositoryCustomizations_Role.SetAttributeNode(attrib);
-                    XmlNode baseRepositoryCustomizationsRoleNode = customizationsForTypeList.AppendChild(baseRepositoryCustomizations_Role);
-                    XmlNode customizedObjectListRole = baseRepositoryCustomizationsRoleNode.AppendChild(resultXml.CreateElement(CustomizedObjectListXML));
-
-                    string query = "//x:" + CustomizedObjectListXML + "//AxSecurityRole";
-                    XmlNodeList customizedRoles = customization.SelectNodes(query, nsm);
-
-                    foreach (XmlNode customizedRole in customizedRoles)
-                    {
-                        string roleName = customizedRole["Name"]?.InnerText;
-                        if (selectedRoles.Contains(roleName))
-                        {
-                            XmlNode importRole = customizedObjectListRole.OwnerDocument.ImportNode(customizedRole, true);
-                            customizedObjectListRole.AppendChild(importRole);
-                        }
-                    }
-
-                    XmlElement disabledObjectsElement = resultXml.CreateElement(DisabledObjectSetXML);
-                    disabledObjectsElement.SetAttribute("xmlns:a", arrayNamespace);
-                    XmlNode disabledObjectSetRole = baseRepositoryCustomizationsRoleNode.AppendChild(disabledObjectsElement);
-
-                    XmlNode newObjectListRole = baseRepositoryCustomizationsRoleNode.AppendChild(resultXml.CreateElement(NewObjectListXML));
-                    query = "//x:" + NewObjectListXML + "//AxSecurityRole";
-                    XmlNodeList createdRoles = customization.SelectNodes(query, nsm);
-                    foreach (XmlNode createdRole in createdRoles)
-                    {
-                        string roleName = createdRole["Name"]?.InnerText;
-                        if (selectedRoles.Contains(roleName))
-                        {
-                            XmlNode importRole = newObjectListRole.OwnerDocument.ImportNode(createdRole, true);
-                            newObjectListRole.AppendChild(importRole);
-                        }
-                    }
-                }
-                //Duties
-                else if (customization.Attributes["i:type"].Value.Contains("Duty"))
-                {
-                    XmlElement baseRepositoryCustomizations_Duty = resultXml.CreateElement("BaseRepositoryCustomizations");
-                    XmlAttribute attrib = resultXml.CreateAttribute("i", "type", schemaNamespace);
-                    attrib.Value = repoCustDuty;
-                    baseRepositoryCustomizations_Duty.SetAttributeNode(attrib);
-                    XmlNode baseRepositoryCustomizationsDutyNode = customizationsForTypeList.AppendChild(baseRepositoryCustomizations_Duty);
-                    XmlNode customizedObjectListDuty = baseRepositoryCustomizationsDutyNode.AppendChild(resultXml.CreateElement(CustomizedObjectListXML));
-
-                    string query = "//x:" + CustomizedObjectListXML + "//AxSecurityDuty";
-                    XmlNodeList customizedDuties = customization.SelectNodes(query, nsm);
-
-                    foreach (XmlNode customizedDuty in customizedDuties)
-                    {
-                        string dutyName = customizedDuty["Name"]?.InnerText;
-                        if (selectedDuties.Contains(dutyName))
-                        {
-                            XmlNode importDuty = customizedObjectListDuty.OwnerDocument.ImportNode(customizedDuty, true);
-                            customizedObjectListDuty.AppendChild(importDuty);
-                        }
-
-                    }
-
-                    XmlElement disabledObjectsElement = resultXml.CreateElement(DisabledObjectSetXML);
-                    disabledObjectsElement.SetAttribute("xmlns:a", arrayNamespace);
-                    XmlNode disabledObjectSetRole = baseRepositoryCustomizationsDutyNode.AppendChild(disabledObjectsElement);
-
-                    XmlNode newObjectListDuty = baseRepositoryCustomizationsDutyNode.AppendChild(resultXml.CreateElement(NewObjectListXML));
-                    query = "//x:" + NewObjectListXML + "//AxSecurityDuty";
-                    XmlNodeList createdDuties = customization.SelectNodes(query, nsm);
-                    foreach (XmlNode createdDuty in createdDuties)
-                    {
-                        string dutyName = createdDuty["Name"]?.InnerText;
-                        if (selectedDuties.Contains(dutyName))
-                        {
-                            XmlNode importDuty = newObjectListDuty.OwnerDocument.ImportNode(createdDuty, true);
-                            newObjectListDuty.AppendChild(importDuty);
-                        }
-                    }
-                }
-                //Privileges
-                else if (customization.Attributes["i:type"].Value.Contains("Privilege"))
-                {
-                    XmlElement baseRepositoryCustomizations_Privilege = resultXml.CreateElement("BaseRepositoryCustomizations");
-                    XmlAttribute attrib = resultXml.CreateAttribute("i", "type", schemaNamespace);
-                    attrib.Value = repoCustPriv;
-                    baseRepositoryCustomizations_Privilege.SetAttributeNode(attrib);
-                    XmlNode baseRepositoryCustomizationsPrivilegeNode = customizationsForTypeList.AppendChild(baseRepositoryCustomizations_Privilege);
-                    XmlNode customizedObjectListPrivilege = baseRepositoryCustomizationsPrivilegeNode.AppendChild(resultXml.CreateElement(CustomizedObjectListXML));
-
-                    string query = "//x:" + CustomizedObjectListXML + "//AxSecurityPrivilege";
-                    XmlNodeList customizedPrivileges = customization.SelectNodes(query, nsm);
-                    foreach (XmlNode customizedPrivilege in customizedPrivileges)
-                    {
-                        string privilegeName = customizedPrivilege["Name"]?.InnerText;
-                        if (selectedPrivs.Contains(privilegeName))
-                        {
-                            XmlNode importPriv = customizedObjectListPrivilege.OwnerDocument.ImportNode(customizedPrivilege, true);
-                            customizedObjectListPrivilege.AppendChild(importPriv);
-                        }
-                    }
-
-                    XmlElement disabledObjectsElement = resultXml.CreateElement(DisabledObjectSetXML);
-                    disabledObjectsElement.SetAttribute("xmlns:a", arrayNamespace);
-                    XmlNode disabledObjectSetRole = baseRepositoryCustomizationsPrivilegeNode.AppendChild(disabledObjectsElement);
-
-                    XmlNode newObjectListPriv = baseRepositoryCustomizationsPrivilegeNode.AppendChild(resultXml.CreateElement(NewObjectListXML));
-                    query = "//x:" + NewObjectListXML + "//AxSecurityPrivilege";
-                    XmlNodeList createdPrivileges = customization.SelectNodes(query, nsm);
-                    foreach (XmlNode createdPrivilege in createdPrivileges)
-                    {
-                        string privilegeName = createdPrivilege["Name"]?.InnerText;
-                        if (selectedPrivs.Contains(privilegeName))
-                        {
-                            XmlNode importPriv = newObjectListPriv.OwnerDocument.ImportNode(createdPrivilege, true);
-                            newObjectListPriv.AppendChild(importPriv);
-                        }
-                    }
-                }
+                string roleName = role["Name"]?.InnerText;
+                if (securityLayersToRemove.Contains(roleName))
+                    rolesToRemove.Add(role);
             }
 
-            resultXml.AppendChild(rootElement);
-            resultXml.Save(outputFilePath + @"\SecurityDatabaseCustomizations.xml");
+            foreach(XmlNode role in rolesToRemove)
+                role.ParentNode.RemoveChild(role);
+
+            XmlNodeList duties = renamedXDoc.GetElementsByTagName("AxSecurityDuty");
+            List<XmlNode> dutiesToRemove = new List<XmlNode>();
+            foreach (XmlNode duty in duties)
+            {
+                string dutyName = duty["Name"]?.InnerText;
+                if (securityLayersToRemove.Contains(dutyName))
+                    dutiesToRemove.Add(duty);
+            }
+
+            foreach (XmlNode duty in dutiesToRemove)
+                duty.ParentNode.RemoveChild(duty);
+
+            XmlNodeList privileges = renamedXDoc.GetElementsByTagName("AxSecurityPrivilege");
+            List<XmlNode> privsToRemove = new List<XmlNode>();
+            foreach (XmlNode privilege in privileges)
+            {
+                string privilegeName = privilege["Name"]?.InnerText;
+                if (securityLayersToRemove.Contains(privilegeName))
+                    privsToRemove.Add(privilege);
+            }
+
+            foreach (XmlNode priv in privsToRemove)
+                priv.ParentNode.RemoveChild(priv);
+
+            renamedXDoc.Save(outputFilePath + @"\SecurityDatabaseCustomizations.xml");
         }
 
         private void ExportSecurityToCode(string inputFilePath, string outputFolderPath)
