@@ -172,28 +172,49 @@ namespace D365FOSecurityConverter
             {
                 DataGridViewRow selectedRow = dgvSecurityLayers.Rows[e.RowIndex];
                 bool selected = (bool)selectedRow.Cells["Selected"].Value;
+                List<SecurityLayer> ObjectsToSelect = new List<SecurityLayer>();
+
+                string name = (string)selectedRow.Cells["OldName"].Value;
+                string typeStr = (string)selectedRow.Cells["Type"].Value;
+                Enum.TryParse(typeStr, out LayerType type);
+
                 if (selected)
                 {
-                    string name = (string)selectedRow.Cells["OldName"].Value;
-                    string typeStr = (string)selectedRow.Cells["Type"].Value;
-                    LayerType type;
-                    Enum.TryParse(typeStr, out type);
+                    ProcessDependentSecurityLayers(name, type, ProcessingDirection.Child, ObjectsToSelect);
+                }
+                else
+                {
+                    ProcessDependentSecurityLayers(name, type, ProcessingDirection.Parent, ObjectsToSelect);
+                }
+                int rowCount = dgvSecurityLayers.Rows.Count;
+                for (int i = 0; i < rowCount; i++)
+                {
+                    DataGridViewRow row = dgvSecurityLayers.Rows[i];
+                    string securityLayerName = (string)row.Cells["OldName"].Value;
+                    string securityLayerTypeStr = (string)row.Cells["Type"].Value;
+                    Enum.TryParse(securityLayerTypeStr, out LayerType securityLayerType);
+                    if (ObjectsToSelect.Any(o =>
+                         string.Equals(o.Name, securityLayerName, StringComparison.CurrentCultureIgnoreCase) && o.Type == securityLayerType))
+                        row.Cells["Selected"].Value = selected;
+                }
+            }
+            if (e.ColumnIndex == dgvSecurityLayers.Columns["Name"].Index && e.RowIndex != -1)
+            {
+                DataGridViewRow selectedRow = dgvSecurityLayers.Rows[e.RowIndex];
+                string oldName = (string)selectedRow.Cells["OldName"].Value;
+                string newName = (string)selectedRow.Cells["Name"].Value;
+                int rowCount = dgvSecurityLayers.Rows.Count;
+                List<string> currentNames = new List<string>();
+                for (int i = 0; i < rowCount; i++)
+                {
+                    DataGridViewRow row = dgvSecurityLayers.Rows[i];
+                    currentNames.Add((string)row.Cells["Name"].Value);
+                }
+                if(currentNames.Where(n => string.Equals(n, newName, StringComparison.CurrentCultureIgnoreCase)).Count() > 1)
+                {
+                    MessageBox.Show($"Security Layer with name {newName} already exists.", "Duplicate Name Entered", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    dgvSecurityLayers.Rows[e.RowIndex].Cells["Name"].Value = oldName;
 
-                    List<SecurityLayer> ObjectsToSelect = new List<SecurityLayer>();
-                    ProcessDependentSecurityElements(name, type, ObjectsToSelect);
-
-                    int rowCount = dgvSecurityLayers.Rows.Count;
-                    for (int i = 0; i < rowCount; i++)
-                    {
-                        DataGridViewRow row = dgvSecurityLayers.Rows[i];
-                        string securityLayerName = (string)row.Cells["OldName"].Value;
-                        string securityLayerTypeStr = (string)row.Cells["Type"].Value;
-                        LayerType securityLayerType;
-                        Enum.TryParse(securityLayerTypeStr, out securityLayerType);
-                        if (ObjectsToSelect.Any(o =>
-                             string.Equals(o.Name, securityLayerName, StringComparison.CurrentCultureIgnoreCase) && o.Type == securityLayerType))
-                            row.Cells["Selected"].Value = true;
-                    }
                 }
             }
         }
@@ -566,7 +587,7 @@ namespace D365FOSecurityConverter
             return true;
         }
 
-        private void ProcessDependentSecurityElements(string name, LayerType type, List<SecurityLayer> objectList)
+        private void ProcessDependentSecurityLayers(string name, LayerType type, ProcessingDirection direction, List<SecurityLayer> objectList)
         {
             objectList.Add(new SecurityLayer()
             {
@@ -574,12 +595,26 @@ namespace D365FOSecurityConverter
                 Type = type
             });
 
-            IEnumerable<ParentToChildAssociation> dependentObjects = parentToChildAssociations.Where(pca =>
+            if(direction == ProcessingDirection.Child)
+            {
+                IEnumerable<ParentToChildAssociation> dependentObjects = parentToChildAssociations.Where(pca =>
                 string.Equals(pca.ParentSystemName, name, StringComparison.CurrentCultureIgnoreCase) &&
                 pca.ParentType == type);
 
-            foreach (var dependentObject in dependentObjects)
-                ProcessDependentSecurityElements(dependentObject.ChildSystemName, dependentObject.ChildType, objectList);
+                foreach (var dependentObject in dependentObjects)
+                    ProcessDependentSecurityLayers(dependentObject.ChildSystemName, dependentObject.ChildType, ProcessingDirection.Child, objectList);
+            }
+            else if(direction == ProcessingDirection.Parent)
+            {
+                IEnumerable<ParentToChildAssociation> dependentObjects = parentToChildAssociations.Where(pca =>
+                string.Equals(pca.ChildSystemName, name, StringComparison.CurrentCultureIgnoreCase) &&
+                pca.ChildType == type);
+
+                foreach (var dependentObject in dependentObjects)
+                    ProcessDependentSecurityLayers(dependentObject.ParentSystemName, dependentObject.ParentType, ProcessingDirection.Parent, objectList);
+            }
+
+            
         }
 
         #endregion

@@ -6,4 +6,10 @@
         Duty = 2,
         Privilege = 3
     }
+
+    public enum ProcessingDirection
+    {
+        Child = 0,
+        Parent = 1
+    }
 }
